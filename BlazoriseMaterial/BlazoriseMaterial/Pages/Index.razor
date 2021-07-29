@@ -1,0 +1,99 @@
+﻿@*@page "/"
+
+    <h1>Hello, world!</h1>
+
+    Welcome to your new app.
+
+    <SurveyPrompt Title="How is Blazor working for you?" />*@
+@page "/"
+<Button Color="Color.Primary" Clicked="MostrarModal">Clickeame</Button>
+
+<Modal @ref="modalRef">
+    <ModalContent Centered="true" Size="ModalSize.Large">
+        <ModalHeader>
+            <ModalHeader>
+                <Icon></Icon>
+                Agregar persona
+            </ModalHeader>
+            <CloseButton></CloseButton>
+        </ModalHeader>
+        <ModalBody>
+            <Validations Mode="ValidationMode.Auto" @ref="validations">
+                <Field>
+                    <FieldLabel>Nombre</FieldLabel>
+                    <TextEdit></TextEdit>
+                </Field>
+                <Field>
+                    <Label>Correo</Label>
+                    <Validation Validator="@ValidateEmail">
+                        <TextEdit>
+                            <Feedback>
+                                <ValidationNone>Please enter the email.</ValidationNone>
+                                <ValidationSuccess>Email is good.</ValidationSuccess>
+                                <ValidationError>Enter valid email!</ValidationError>
+                            </Feedback>
+                        </TextEdit>
+                    </Validation>
+                </Field>
+                <Field>
+                    <Label>Fecha de nacimiento</Label>
+                    <Validation Validator="@ValidateBirthDate">
+                        <DateEdit TValue="DateTime?">
+                            <Feedback>
+                                <ValidationNone>Please enter the date.</ValidationNone>
+                                <ValidationSuccess></ValidationSuccess>
+                                <ValidationError>@errorBirthDate</ValidationError>
+                            </Feedback>
+                        </DateEdit>
+                    </Validation>
+                </Field>
+            </Validations>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary">Cancelar</Button>
+            <Button Color="Color.Primary" Clicked="AgregarPersona">Agregar</Button>
+            <Alert Color="Color.Success" @bind-Visible="@visible">
+                <AlertMessage>Well done!</AlertMessage>
+                <AlertDescription>You successfully read this important alert message.</AlertDescription>
+            </Alert>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code{
+    private Modal modalRef;
+    public Validations validations;
+    bool visible = false;
+    string errorBirthDate = "";
+
+    void MostrarModal()
+    {
+        modalRef.Show();
+    }
+
+    void AgregarPersona()
+    {
+        if (validations.ValidateAll())
+            visible = true;
+    }
+    void ValidateEmail(ValidatorEventArgs e)
+    {
+        var email = Convert.ToString(e.Value);
+
+        e.Status = string.IsNullOrEmpty(email) ? ValidationStatus.None :
+            email.Contains("@") ? ValidationStatus.Success : ValidationStatus.Error;
+    }
+
+    void ValidateBirthDate(ValidatorEventArgs e)
+    {
+        var date = Convert.ToDateTime(e.Value);
+
+        if (date > DateTime.Now)
+        {
+            errorBirthDate = "La fecha de nacimiento no puede ser superior a la fecha actual.";
+            e.Status = ValidationStatus.Error;
+            return;
+        }
+        e.Status = ValidationStatus.Success;
+    }
+}
